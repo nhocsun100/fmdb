@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Validate SonarCloud configuration
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
+        if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]') }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
@@ -47,12 +47,12 @@ jobs:
             exit 1
           fi
 
-      - name: Skip SonarCloud on fork PRs without secrets
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true }}
-        run: echo "Skipping SonarCloud scan for forked pull_request because SONAR_TOKEN is unavailable."
+      - name: Skip SonarCloud on fork/dependabot PRs without secrets
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.head.repo.fork == true || github.actor == 'dependabot[bot]') }}
+        run: echo "Skipping SonarCloud scan for forked or Dependabot pull_request because SONAR_TOKEN is unavailable."
 
       - name: SonarCloud Scan
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
+        if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]') }}
         uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
